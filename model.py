@@ -1,11 +1,8 @@
-import math
-
 import numpy as np
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.autograd import Variable
 
 
 def normalized_columns_initializer(weights, std=1.0):
@@ -33,7 +30,7 @@ def weights_init(m):
 
 
 class ActorCritic(torch.nn.Module):
-    
+
     def __init__(self, num_inputs, action_space):
         super(ActorCritic, self).__init__()
         self.conv1 = nn.Conv2d(num_inputs, 32, 3, stride=2, padding=1)
@@ -53,7 +50,7 @@ class ActorCritic(torch.nn.Module):
         self.icm_conv3 = nn.Conv2d(32, 32, 3, stride=2, padding=1)
         self.icm_conv4 = nn.Conv2d(32, 32, 3, stride=2, padding=1)
 
-        #self.icm_lstm = nn.LSTMCell(32 * 3 * 3, 256)
+        # self.icm_lstm = nn.LSTMCell(32 * 3 * 3, 256)
 
         self.inverse_linear1 = nn.Linear(288 + 288, 256)
         self.inverse_linear2 = nn.Linear(256, num_outputs)
@@ -61,13 +58,11 @@ class ActorCritic(torch.nn.Module):
         self.forward_linear1 = nn.Linear(288 + num_outputs, 256)
         self.forward_linear2 = nn.Linear(256, 288)
 
+        # self.inverse_linear1 = nn.Linear(256 + 256, 256)
+        # self.inverse_linear2 = nn.Linear(256, num_outputs)
 
-        #self.inverse_linear1 = nn.Linear(256 + 256, 256)
-        #self.inverse_linear2 = nn.Linear(256, num_outputs)
-
-
-        #self.forward_linear1 = nn.Linear(256 + num_outputs, 256)
-        #self.forward_linear2 = nn.Linear(256, 256)
+        # self.forward_linear1 = nn.Linear(256 + num_outputs, 256)
+        # self.forward_linear2 = nn.Linear(256, 256)
         ################################################################
         self.apply(weights_init)
         self.inverse_linear1.weight.data = normalized_columns_initializer(
@@ -76,7 +71,7 @@ class ActorCritic(torch.nn.Module):
         self.inverse_linear2.weight.data = normalized_columns_initializer(
             self.inverse_linear2.weight.data, 1.0)
         self.inverse_linear2.bias.data.fill_(0)
-        
+
         self.forward_linear1.weight.data = normalized_columns_initializer(
             self.forward_linear1.weight.data, 0.01)
         self.forward_linear1.bias.data.fill_(0)
@@ -84,13 +79,11 @@ class ActorCritic(torch.nn.Module):
             self.forward_linear2.weight.data, 1.0)
         self.forward_linear2.bias.data.fill_(0)
 
-
         '''
         self.icm_lstm.bias_ih.data.fill_(0)
         self.icm_lstm.bias_hh.data.fill_(0)
         '''
         ################################################################
-
 
         self.actor_linear.weight.data = normalized_columns_initializer(
             self.actor_linear.weight.data, 0.01)
@@ -104,10 +97,9 @@ class ActorCritic(torch.nn.Module):
 
         self.train()
 
-
     def forward(self, inputs, icm):
 
-        if icm == False:
+        if not icm:
             """A3C"""
             inputs, (a3c_hx, a3c_cx) = inputs
 
@@ -144,11 +136,11 @@ class ActorCritic(torch.nn.Module):
             vec_st = vec_st.view(-1, 32 * 3 * 3)
             vec_st1 = vec_st1.view(-1, 32 * 3 * 3)
 
-            #icm_hx, icm_cx = self.icm_lstm(vec_st, (icm_hx, icm_cx))
-            #icm_hx1, icm_cx1 = self.icm_lstm(vec_st1, (icm_hx1, icm_cx1))
+            # icm_hx, icm_cx = self.icm_lstm(vec_st, (icm_hx, icm_cx))
+            # icm_hx1, icm_cx1 = self.icm_lstm(vec_st1, (icm_hx1, icm_cx1))
 
-            #vec_st = icm_hx
-            #vec_st1 = icm_hx1
+            # vec_st = icm_hx
+            # vec_st1 = icm_hx1
 
             inverse_vec = torch.cat((vec_st, vec_st1), 1)
             forward_vec = torch.cat((vec_st, a_t), 1)
@@ -156,12 +148,11 @@ class ActorCritic(torch.nn.Module):
             inverse = self.inverse_linear1(inverse_vec)
             inverse = F.relu(inverse)
             inverse = self.inverse_linear2(inverse)
-            inverse = F.softmax(inverse)####
+            inverse = F.softmax(inverse)  ####
 
             forward = self.forward_linear1(forward_vec)
             forward = F.relu(forward)
             forward = self.forward_linear2(forward)
 
             return vec_st1, inverse, forward
-            #return vec_st1, inverse, forward, (icm_hx, icm_cx), (icm_hx1, icm_cx1)
-
+            # return vec_st1, inverse, forward, (icm_hx, icm_cx), (icm_hx1, icm_cx1)

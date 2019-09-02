@@ -1,23 +1,16 @@
-import math
-import os
-import sys
-
 import pickle
-import numpy as np
-import random
-import torch
-import torch.nn.functional as F
-import torch.optim as optim
-import env_wrapper
-from model import ActorCritic
-from torch.autograd import Variable
-from torchvision import datasets, transforms
 import time
 from collections import deque
 
+import torch
+import torch.nn.functional as F
+from torch.autograd import Variable
+
+import env_wrapper
+from model import ActorCritic
+
 
 def test(rank, args, shared_model):
-
     torch.manual_seed(args.seed + rank)
     env = env_wrapper.create_doom(args.record, outdir=args.outdir)
 
@@ -49,7 +42,7 @@ def test(rank, args, shared_model):
 
         value, logit, (hx, cx) = model(
             (Variable(state.unsqueeze(0), volatile=True), (hx, cx)),
-            icm = False
+            icm=False
         )
 
         prob = F.softmax(logit)
@@ -73,7 +66,7 @@ def test(rank, args, shared_model):
                               time.gmtime(end_time - start_time)),
                 reward_sum, episode_length))
             result.append((reward_sum, end_time - start_time))
-            f = open('output/result.pickle','w')
+            f = open('output/result.pickle', 'w')
             pickle.dump(result, f)
             f.close()
             torch.save(model.state_dict(), 'output/{}.pth'.format((end_time - start_time)))

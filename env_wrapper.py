@@ -3,13 +3,14 @@ This file is derived from https://github.com/shelhamer/ourl/envs.py
 Originally written by Evan Shelhamer and modified by Deepak Pathak
 """
 from __future__ import print_function
-import numpy as np
+
 from collections import deque
+
+import gym
+import numpy as np
 from PIL import Image
 from gym.spaces.box import Box
-import gym
 
-import numpy as np
 
 class BufferedObsEnv(gym.ObservationWrapper):
     """Buffer observations and stack e.g. for frame skipping.
@@ -19,8 +20,9 @@ class BufferedObsEnv(gym.ObservationWrapper):
          the buffer is zeroed out on reset.
          *must* call reset() for init!
     """
+
     def __init__(self, env=None, n=4, skip=4, shape=(84, 84),
-                    channel_last=False):
+                 channel_last=False):
         super(BufferedObsEnv, self).__init__(env)
         self.obs_shape = shape
         # most recent raw observations (for max pooling across time steps)
@@ -80,6 +82,7 @@ class BufferedObsEnv(gym.ObservationWrapper):
 
 class NoNegativeRewardEnv(gym.RewardWrapper):
     """Clip reward in negative direction."""
+
     def __init__(self, env=None, neg_clip=0.0):
         super(NoNegativeRewardEnv, self).__init__(env)
         self.neg_clip = neg_clip
@@ -102,6 +105,6 @@ def create_doom(record=False, outdir=None):
     fshape = (42, 42)
 
     env.seed(None)
-    #env = env_wrapper.NoNegativeRewardEnv(env)
+    # env = env_wrapper.NoNegativeRewardEnv(env)
     env = BufferedObsEnv(env, skip=1, shape=fshape)
     return env

@@ -5,21 +5,16 @@ Source code is heavily based on ikostrikov's A3C (https://github.com/ikostrikov/
 from __future__ import print_function
 
 import argparse
-import os
-import sys
-import cv2
 
 import torch
-import torch.optim as optim
 import torch.multiprocessing as mp
-import torch.nn as nn
-import torch.nn.functional as F
-#from envs import create_atari_env
+
+# from envs import create_atari_env
 import env_wrapper
-from model import ActorCritic
-from train import train
-from test import test
 import my_optim
+from model import ActorCritic
+from test import test
+from train import train
 
 # Based on
 # https://github.com/pytorch/examples/tree/master/mnist_hogwild
@@ -54,13 +49,11 @@ parser.add_argument('--lmbda', type=float, default=0.1, metavar='LR',
 parser.add_argument('--outdir', default="../output", help='Output log directory')
 parser.add_argument('--record', action='store_true', help="Record the policy running video")
 
-
-
 if __name__ == '__main__':
     args = parser.parse_args()
     torch.manual_seed(args.seed)
 
-    #env = create_atari_env(args.env_name)
+    # env = create_atari_env(args.env_name)
     env = env_wrapper.create_doom(args.record, outdir=args.outdir)
     shared_model = ActorCritic(
         env.observation_space.shape[0], env.action_space)
